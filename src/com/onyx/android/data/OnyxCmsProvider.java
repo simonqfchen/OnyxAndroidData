@@ -559,7 +559,6 @@ public class OnyxCmsProvider extends ContentProvider
         try {
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             int count = 0;
-            
             switch (sUriMatcher.match(uri)) {
             case MatcherResult.ITEMS:
                 count = db.update(OnyxLibraryItem.DB_TABLE_NAME, values, selection, selectionArgs);
@@ -615,10 +614,16 @@ public class OnyxCmsProvider extends ContentProvider
                 Log.w(TAG, "Thumbnail has no needs of updating");
                 return 0;
             case MatcherResult.HISTORIES:
+            	count = db.update(OnyxHistoryEntry.DB_TABLE_NAME, values, selection, selectionArgs);
+            	break;
             case MatcherResult.HISTORY_ID:
-                Log.w(TAG, "Reading history entry has no needs of updating");
-                assert(false);
-                return 0;
+            	String id = uri.getPathSegments().get(1);
+                String where = OnyxHistoryEntry.Columns._ID + "=" + id;
+                if (!TextUtils.isEmpty(selection)) {
+                    where = where + " AND (" + selection + ")";
+                }
+                count = db.update(OnyxHistoryEntry.DB_TABLE_NAME, values, where, selectionArgs);
+                break;
             default:
                 Log.w(TAG, "Unknown URI: " + uri); 
                 return 0;
