@@ -40,7 +40,7 @@ public class OnyxCmsProvider extends ContentProvider
     private static final String TAG = "OnyxCmsProvider";
     
     private static final String sDBName = "onyx.cms.db";
-    private static final int sDBVersion = 2;
+    private static final int sDBVersion = 3;
     
     private static HashMap<String, String> sItemProjectionMap;
     private static HashMap<String, String> sMetadataProjectionMap;
@@ -225,6 +225,15 @@ public class OnyxCmsProvider extends ContentProvider
             // TODO: data is important, simply dropping is not be accepted 
 //            db.execSQL("DROP TABLE IF EXISTS " + OnyxLibraryItem.DB_TABLE_NAME);
 //            onCreate(db);
+            if (newVersion == 3) {
+            	db.execSQL("CREATE TABLE " + OnyxHistoryEntry.DB_TABLE_NAME + " ("
+            			+ OnyxHistoryEntry.Columns._ID + " INTEGER PRIMARY KEY,"
+            			+ OnyxHistoryEntry.Columns.MD5 + " TEXT,"
+            			+ OnyxHistoryEntry.Columns.START_TIME + " LONG,"
+            			+ OnyxHistoryEntry.Columns.END_TIME + " LONG,"
+            			+ OnyxMetadata.Columns.EXTRA_ATTRIBUTES + " TEXT"
+            			+ ");");
+            }
         }
         
     }
