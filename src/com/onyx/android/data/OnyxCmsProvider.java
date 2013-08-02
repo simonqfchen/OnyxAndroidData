@@ -136,6 +136,7 @@ public class OnyxCmsProvider extends ContentProvider
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.MD5, OnyxHistoryEntry.Columns.MD5);
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.START_TIME, OnyxHistoryEntry.Columns.START_TIME);
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.END_TIME, OnyxHistoryEntry.Columns.END_TIME);
+        sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.PROGRESS, OnyxHistoryEntry.Columns.PROGRESS);
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES, OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES);
     }
     
@@ -212,7 +213,8 @@ public class OnyxCmsProvider extends ContentProvider
                     + OnyxHistoryEntry.Columns.MD5 + " TEXT,"
                     + OnyxHistoryEntry.Columns.START_TIME + " LONG,"
                     + OnyxHistoryEntry.Columns.END_TIME + " LONG,"
-                    + OnyxMetadata.Columns.EXTRA_ATTRIBUTES + " TEXT"
+                    + OnyxHistoryEntry.Columns.PROGRESS + " TEXT,"
+                    + OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES + " TEXT"
                     + ");");
         }
 
@@ -231,7 +233,8 @@ public class OnyxCmsProvider extends ContentProvider
             			+ OnyxHistoryEntry.Columns.MD5 + " TEXT,"
             			+ OnyxHistoryEntry.Columns.START_TIME + " LONG,"
             			+ OnyxHistoryEntry.Columns.END_TIME + " LONG,"
-            			+ OnyxMetadata.Columns.EXTRA_ATTRIBUTES + " TEXT"
+            			+ OnyxHistoryEntry.Columns.PROGRESS + " TEXT,"
+            			+ OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES + " TEXT"
             			+ ");");
             }
         }
