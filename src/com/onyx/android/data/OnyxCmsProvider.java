@@ -96,6 +96,7 @@ public class OnyxCmsProvider extends ContentProvider
         sMetadataProjectionMap.put(OnyxMetadata.Columns.AUTHORS, OnyxMetadata.Columns.AUTHORS);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.PUBLISHER, OnyxMetadata.Columns.PUBLISHER);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.LANGUAGE, OnyxMetadata.Columns.LANGUAGE);
+        sMetadataProjectionMap.put(OnyxMetadata.Columns.ISBN, OnyxMetadata.Columns.ISBN);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.DESCRIPTION, OnyxMetadata.Columns.DESCRIPTION);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.LOCATION, OnyxMetadata.Columns.LOCATION);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.NATIVE_ABSOLUTE_PATH, OnyxMetadata.Columns.NATIVE_ABSOLUTE_PATH);
@@ -169,6 +170,7 @@ public class OnyxCmsProvider extends ContentProvider
                     + OnyxMetadata.Columns.AUTHORS + " TEXT,"
                     + OnyxMetadata.Columns.PUBLISHER + " TEXT,"
                     + OnyxMetadata.Columns.LANGUAGE + " TEXT,"
+                    + OnyxMetadata.Columns.ISBN + " TEXT,"
                     + OnyxMetadata.Columns.DESCRIPTION + " TEXT,"
                     + OnyxMetadata.Columns.LOCATION + " TEXT,"
                     + OnyxMetadata.Columns.NATIVE_ABSOLUTE_PATH + " TEXT,"
