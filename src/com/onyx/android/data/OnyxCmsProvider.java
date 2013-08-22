@@ -28,6 +28,7 @@ import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
 import com.onyx.android.sdk.data.cms.OnyxLibraryItem;
 import com.onyx.android.sdk.data.cms.OnyxMetadata;
 import com.onyx.android.sdk.data.cms.OnyxHistoryEntry;
+import com.onyx.android.sdk.data.cms.OnyxPosition;
 import com.onyx.android.sdk.data.cms.OnyxThumbnail;
 import com.onyx.android.sdk.device.EnvironmentUtil;
 
@@ -40,7 +41,7 @@ public class OnyxCmsProvider extends ContentProvider
     private static final String TAG = "OnyxCmsProvider";
     
     private static final String sDBName = "onyx.cms.db";
-    private static final int sDBVersion = 3;
+    private static final int sDBVersion = 4;
     
     private static HashMap<String, String> sItemProjectionMap;
     private static HashMap<String, String> sMetadataProjectionMap;
@@ -48,6 +49,7 @@ public class OnyxCmsProvider extends ContentProvider
     private static HashMap<String, String> sAnnotationProjectionMap;
     private static HashMap<String, String> sThumbnailProjectionMap;
     private static HashMap<String, String> sHistoryProjectionMap;
+    private static HashMap<String, String> sPositionProjectionMap;
     
     private static final UriMatcher sUriMatcher;
     private static class MatcherResult {
@@ -63,6 +65,8 @@ public class OnyxCmsProvider extends ContentProvider
         public static final int THUMBNAIL_ID = 10;
         public static final int HISTORIES = 11;
         public static final int HISTORY_ID = 12;
+        public static final int POSITIONS = 13;
+        public static final int POSITION_ID = 14;
     }
     
     static {
@@ -79,6 +83,8 @@ public class OnyxCmsProvider extends ContentProvider
         sUriMatcher.addURI(OnyxCmsCenter.PROVIDER_AUTHORITY, OnyxThumbnail.DB_TABLE_NAME + "/#", MatcherResult.THUMBNAIL_ID);
         sUriMatcher.addURI(OnyxCmsCenter.PROVIDER_AUTHORITY, OnyxHistoryEntry.DB_TABLE_NAME, MatcherResult.HISTORIES);
         sUriMatcher.addURI(OnyxCmsCenter.PROVIDER_AUTHORITY, OnyxHistoryEntry.DB_TABLE_NAME + "/#", MatcherResult.HISTORY_ID);
+        sUriMatcher.addURI(OnyxCmsCenter.PROVIDER_AUTHORITY, OnyxPosition.DB_TABLE_NAME, MatcherResult.POSITIONS);
+        sUriMatcher.addURI(OnyxCmsCenter.PROVIDER_AUTHORITY, OnyxPosition.DB_TABLE_NAME + "/#", MatcherResult.POSITION_ID);
         
         sItemProjectionMap = new HashMap<String, String>();
         sItemProjectionMap.put(OnyxLibraryItem.Columns._ID, OnyxLibraryItem.Columns._ID);
@@ -96,6 +102,7 @@ public class OnyxCmsProvider extends ContentProvider
         sMetadataProjectionMap.put(OnyxMetadata.Columns.AUTHORS, OnyxMetadata.Columns.AUTHORS);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.PUBLISHER, OnyxMetadata.Columns.PUBLISHER);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.LANGUAGE, OnyxMetadata.Columns.LANGUAGE);
+        sMetadataProjectionMap.put(OnyxMetadata.Columns.ISBN, OnyxMetadata.Columns.ISBN);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.DESCRIPTION, OnyxMetadata.Columns.DESCRIPTION);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.LOCATION, OnyxMetadata.Columns.LOCATION);
         sMetadataProjectionMap.put(OnyxMetadata.Columns.NATIVE_ABSOLUTE_PATH, OnyxMetadata.Columns.NATIVE_ABSOLUTE_PATH);
@@ -115,6 +122,7 @@ public class OnyxCmsProvider extends ContentProvider
         sBookmarkProjectionMap.put(OnyxBookmark.Columns.QUOTE, OnyxBookmark.Columns.QUOTE);
         sBookmarkProjectionMap.put(OnyxBookmark.Columns.LOCATION, OnyxBookmark.Columns.LOCATION);
         sBookmarkProjectionMap.put(OnyxBookmark.Columns.UPDATE_TIME, OnyxBookmark.Columns.UPDATE_TIME);
+        sBookmarkProjectionMap.put(OnyxBookmark.Columns.APPLICATION, OnyxBookmark.Columns.APPLICATION);
         
         sAnnotationProjectionMap = new HashMap<String, String>();
         sAnnotationProjectionMap.put(OnyxAnnotation.Columns._ID, OnyxAnnotation.Columns._ID);
@@ -124,6 +132,7 @@ public class OnyxCmsProvider extends ContentProvider
         sAnnotationProjectionMap.put(OnyxAnnotation.Columns.LOCATION_END, OnyxAnnotation.Columns.LOCATION_END);
         sAnnotationProjectionMap.put(OnyxAnnotation.Columns.NOTE, OnyxAnnotation.Columns.NOTE);
         sAnnotationProjectionMap.put(OnyxAnnotation.Columns.UPDATE_TIME, OnyxAnnotation.Columns.UPDATE_TIME);
+        sAnnotationProjectionMap.put(OnyxAnnotation.Columns.APPLICATION, OnyxAnnotation.Columns.APPLICATION);
         
         sThumbnailProjectionMap = new HashMap<String, String>();
         sThumbnailProjectionMap.put(OnyxThumbnail.Columns._ID, OnyxThumbnail.Columns._ID);
@@ -137,7 +146,16 @@ public class OnyxCmsProvider extends ContentProvider
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.START_TIME, OnyxHistoryEntry.Columns.START_TIME);
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.END_TIME, OnyxHistoryEntry.Columns.END_TIME);
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.PROGRESS, OnyxHistoryEntry.Columns.PROGRESS);
+        sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.APPLICATION, OnyxHistoryEntry.Columns.APPLICATION);
         sHistoryProjectionMap.put(OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES, OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES);
+        
+        sPositionProjectionMap = new HashMap<String, String>();
+        sPositionProjectionMap.put(OnyxPosition.Columns._ID, OnyxPosition.Columns._ID);
+        sPositionProjectionMap.put(OnyxPosition.Columns.MD5, OnyxPosition.Columns.MD5);
+        sPositionProjectionMap.put(OnyxPosition.Columns.LOCATION, OnyxPosition.Columns.LOCATION);
+        sPositionProjectionMap.put(OnyxPosition.Columns.UPDATE_TIME, OnyxPosition.Columns.UPDATE_TIME);
+        sPositionProjectionMap.put(OnyxPosition.Columns.APPLICATION, OnyxPosition.Columns.APPLICATION);
+
     }
     
     private static class DBHelper extends SQLiteOpenHelper {
@@ -169,6 +187,7 @@ public class OnyxCmsProvider extends ContentProvider
                     + OnyxMetadata.Columns.AUTHORS + " TEXT,"
                     + OnyxMetadata.Columns.PUBLISHER + " TEXT,"
                     + OnyxMetadata.Columns.LANGUAGE + " TEXT,"
+                    + OnyxMetadata.Columns.ISBN + " TEXT,"
                     + OnyxMetadata.Columns.DESCRIPTION + " TEXT,"
                     + OnyxMetadata.Columns.LOCATION + " TEXT,"
                     + OnyxMetadata.Columns.NATIVE_ABSOLUTE_PATH + " TEXT,"
@@ -188,7 +207,8 @@ public class OnyxCmsProvider extends ContentProvider
                     + OnyxBookmark.Columns.MD5 + " TEXT,"
                     + OnyxBookmark.Columns.QUOTE + " TEXT,"
                     + OnyxBookmark.Columns.LOCATION + " TEXT,"
-                    + OnyxBookmark.Columns.UPDATE_TIME + " TEXT"
+                    + OnyxBookmark.Columns.UPDATE_TIME + " TEXT,"
+                    + OnyxBookmark.Columns.APPLICATION + " TEXT"
                     + ");");
             
             db.execSQL("CREATE TABLE " + OnyxAnnotation.DB_TABLE_NAME + " ("
@@ -198,7 +218,8 @@ public class OnyxCmsProvider extends ContentProvider
                     + OnyxAnnotation.Columns.LOCATION_BEGIN + " TEXT,"
                     + OnyxAnnotation.Columns.LOCATION_END + " TEXT,"
                     + OnyxAnnotation.Columns.NOTE + " TEXT,"
-                    + OnyxAnnotation.Columns.UPDATE_TIME + " TEXT"
+                    + OnyxAnnotation.Columns.UPDATE_TIME + " TEXT,"
+                    + OnyxAnnotation.Columns.APPLICATION + " TEXT"
                     + ");");
             
             db.execSQL("CREATE TABLE " + OnyxThumbnail.DB_TABLE_NAME + " ("
@@ -214,8 +235,18 @@ public class OnyxCmsProvider extends ContentProvider
                     + OnyxHistoryEntry.Columns.START_TIME + " LONG,"
                     + OnyxHistoryEntry.Columns.END_TIME + " LONG,"
                     + OnyxHistoryEntry.Columns.PROGRESS + " TEXT,"
+                    + OnyxHistoryEntry.Columns.APPLICATION + " TEXT,"
                     + OnyxHistoryEntry.Columns.EXTRA_ATTRIBUTES + " TEXT"
                     + ");");
+            
+            db.execSQL("CREATE TABLE " + OnyxPosition.DB_TABLE_NAME + " ("
+                    + OnyxPosition.Columns._ID + " INTEGER PRIMARY KEY,"
+                    + OnyxPosition.Columns.MD5 + " TEXT,"
+                    + OnyxPosition.Columns.LOCATION + " TEXT,"
+                    + OnyxPosition.Columns.UPDATE_TIME + " TEXT,"
+                    + OnyxPosition.Columns.APPLICATION + " TEXT"
+                    + ");");
+            
         }
 
         @Override
@@ -324,6 +355,15 @@ public class OnyxCmsProvider extends ContentProvider
                 
                 if (matcher_result == MatcherResult.HISTORY_ID) {
                     builder.appendWhere(OnyxHistoryEntry.Columns._ID + "=" + uri.getPathSegments().get(1));
+                }
+            }
+            else if (matcher_result == MatcherResult.POSITIONS || 
+                    matcher_result == MatcherResult.POSITION_ID) {
+                builder.setTables(OnyxPosition.DB_TABLE_NAME);
+                builder.setProjectionMap(sPositionProjectionMap);
+                
+                if (matcher_result == MatcherResult.POSITION_ID) {
+                    builder.appendWhere(OnyxPosition.Columns._ID + "=" + uri.getPathSegments().get(1));
                 }
             }
             else {
@@ -448,6 +488,11 @@ public class OnyxCmsProvider extends ContentProvider
                 dst_null_column_hack = OnyxHistoryEntry.Columns.MD5;
                 dst_content_uri = OnyxHistoryEntry.CONTENT_URI;
             }
+            else if (match_result == MatcherResult.POSITIONS) {
+                dst_table = OnyxPosition.DB_TABLE_NAME;
+                dst_null_column_hack = OnyxPosition.Columns.MD5;
+                dst_content_uri = OnyxPosition.CONTENT_URI;
+            }
             else {
                 Log.w(TAG, "Unknown URI: " + uri);
                 return null;
@@ -550,6 +595,18 @@ public class OnyxCmsProvider extends ContentProvider
                 count = db.delete(OnyxHistoryEntry.DB_TABLE_NAME, where, selectionArgs);
                 break;
             }
+            case MatcherResult.POSITIONS:
+                count = db.delete(OnyxPosition.DB_TABLE_NAME, selection, selectionArgs);
+                break;
+            case MatcherResult.POSITION_ID: {
+                String id = uri.getPathSegments().get(1);
+                String where = OnyxPosition.Columns._ID + "=" + id;
+                if (!TextUtils.isEmpty(selection)) {
+                    where = where + " AND (" + selection + ")";
+                }
+                count = db.delete(OnyxPosition.DB_TABLE_NAME, where, selectionArgs);
+                break;
+            }
             default:
                 Log.w(TAG, "Unknown URI: " + uri); 
                 return 0;
@@ -628,7 +685,7 @@ public class OnyxCmsProvider extends ContentProvider
             case MatcherResult.HISTORIES:
             	count = db.update(OnyxHistoryEntry.DB_TABLE_NAME, values, selection, selectionArgs);
             	break;
-            case MatcherResult.HISTORY_ID:
+            case MatcherResult.HISTORY_ID: {
             	String id = uri.getPathSegments().get(1);
                 String where = OnyxHistoryEntry.Columns._ID + "=" + id;
                 if (!TextUtils.isEmpty(selection)) {
@@ -636,6 +693,19 @@ public class OnyxCmsProvider extends ContentProvider
                 }
                 count = db.update(OnyxHistoryEntry.DB_TABLE_NAME, values, where, selectionArgs);
                 break;
+            }
+            case MatcherResult.POSITIONS:
+            	count = db.update(OnyxPosition.DB_TABLE_NAME, values, selection, selectionArgs);
+            	break;
+            case MatcherResult.POSITION_ID: {
+            	String id = uri.getPathSegments().get(1);
+                String where = OnyxPosition.Columns._ID + "=" + id;
+                if (!TextUtils.isEmpty(selection)) {
+                    where = where + " AND (" + selection + ")";
+                }
+                count = db.update(OnyxPosition.DB_TABLE_NAME, values, where, selectionArgs);
+                break;
+            }
             default:
                 Log.w(TAG, "Unknown URI: " + uri); 
                 return 0;
